@@ -397,7 +397,7 @@ function getFallbackStory(materials, userNote) {
 // -------------------------------------------------------------
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   const hasKey = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here');
   res.json({
     status: "ok",
@@ -407,7 +407,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // POST /api/scan
-app.post('/api/scan', async (req, res) => {
+app.post(['/api/scan', '/scan'], async (req, res) => {
   const { image } = req.body;
   if (!image) {
     return res.status(400).json({ error: "Missing image in request body" });
@@ -499,7 +499,7 @@ Return STRICT JSON matching schema:
 });
 
 // POST /api/challenge
-app.post('/api/challenge', async (req, res) => {
+app.post(['/api/challenge', '/challenge'], async (req, res) => {
   const { materials } = req.body;
   if (!materials || !Array.isArray(materials) || materials.length === 0) {
     return res.status(400).json({ error: "Please provide an array of materials" });
@@ -546,7 +546,7 @@ Return STRICT JSON matching schema:
 });
 
 // POST /api/ideas
-app.post('/api/ideas', async (req, res) => {
+app.post(['/api/ideas', '/ideas'], async (req, res) => {
   const { materials } = req.body;
   if (!materials || !Array.isArray(materials) || materials.length === 0) {
     return res.status(400).json({ error: "Please provide an array of materials" });
@@ -603,7 +603,7 @@ Return STRICT JSON:
 });
 
 // POST /api/story
-app.post('/api/story', async (req, res) => {
+app.post(['/api/story', '/story'], async (req, res) => {
   const { artworkImage, materials, userNote } = req.body || {};
   if (!materials && !artworkImage) {
     return res.status(400).json({ error: "Missing required 'materials' or 'artworkImage' in request body" });
@@ -674,7 +674,7 @@ Return STRICT JSON:
 });
 
 // POST /api/match - AI match explanation for nearest/best supplier
-app.post('/api/match', async (req, res) => {
+app.post(['/api/match', '/match'], async (req, res) => {
   const { materials = [], suppliers = [], challengeTitle = "" } = req.body || {};
 
   if (!req.body || !Array.isArray(suppliers)) {
@@ -746,7 +746,7 @@ Return STRICT JSON:
 });
 
 // POST /api/chat - AI Chat Assistant for creators and suppliers
-app.post('/api/chat', async (req, res) => {
+app.post(['/api/chat', '/chat'], async (req, res) => {
   const { messages = [], context = {} } = req.body || {};
 
   if (!req.body || !Array.isArray(messages)) {
@@ -826,21 +826,23 @@ Respond as Re:form Assistant in STRICT JSON matching the required schema. If the
   }
 });
 
-// Serve static frontend files if production build exists
-const distPath = path.resolve(__dirname, '../frontend/dist');
-app.use(express.static(distPath));
+// Serve static frontend files if production build exists (when running as standalone Node server)
+if (!process.env.VERCEL) {
+  const distPath = path.resolve(__dirname, '../frontend/dist');
+  app.use(express.static(distPath));
 
-// For all non-API GET requests, serve index.html
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next();
-  }
-  res.sendFile(path.join(distPath, 'index.html'), (err) => {
-    if (err) {
-      res.status(200).send("Re:form API server is running. Start frontend dev server on port 5173 or run 'npm run build'.");
+  // For all non-API GET requests, serve index.html
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
     }
+    res.sendFile(path.join(distPath, 'index.html'), (err) => {
+      if (err) {
+        res.status(200).send("Re:form API server is running. Start frontend dev server on port 5173 or run 'npm run build'.");
+      }
+    });
   });
-});
+}
 
 // Global error handler - never leaks internal stack traces to the client
 app.use((err, req, res, next) => {
@@ -850,9 +852,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`[Re:form Backend] Running on http://localhost:${PORT}`);
-  console.log(`[Re:form Backend] Gemini Flash Model: ${FLASH_MODEL}`);
-  console.log(`[Re:form Backend] AI configured: ${Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here')}`);
-});
+// Start server if run standalone (not imported as a Vercel serverless function)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`[Re:form Backend] Running on http://localhost:${PORT}`);
+    console.log(`[Re:form Backend] Gemini Flash Model: ${FLASH_MODEL}`);
+    console.log(`[Re:form Backend] AI configured: ${Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here')}`);
+  });
+}
+
+export default app;

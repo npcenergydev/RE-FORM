@@ -62,6 +62,49 @@ node test/e2e.test.js     # Responsive viewport & accessibility
 
 ---
 
+## ☁️ Deploy to Vercel (Step-by-Step)
+
+Re:form is pre-configured for fullstack Vercel deployment with a single serverless function in [`api/index.js`](file:///Users/npcenergydev/Projects/RE-FORM/api/index.js) handling all Express endpoints and Vercel CDN serving the Vite frontend build ([`vercel.json`](file:///Users/npcenergydev/Projects/RE-FORM/vercel.json)).
+
+### Option 1: Deploy via Vercel Dashboard (Recommended)
+
+1. **Push your code to GitHub** (already up to date on `main`).
+2. Go to [vercel.com](https://vercel.com) and log in.
+3. Click **"Add New..." > "Project"**.
+4. Select your **`RE-FORM`** repository and click **Import**.
+5. Keep default Framework Preset as **Vite** (or **Other**):
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `frontend/dist`
+6. Under **Environment Variables**, add the following keys from your `.env` / `frontend/.env`:
+
+| Key | Description | Environment |
+| :--- | :--- | :--- |
+| `GEMINI_API_KEY` | Google AI Studio API key | Production, Preview, Dev |
+| `GEMINI_MODEL` | Set to `gemini-3.5-flash-lite` | Production, Preview, Dev |
+| `VITE_FIREBASE_API_KEY` | Firebase Web API Key | Production, Preview, Dev |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain | Production, Preview, Dev |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase Project ID | Production, Preview, Dev |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase Storage Bucket | Production, Preview, Dev |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase Messaging Sender ID | Production, Preview, Dev |
+| `VITE_FIREBASE_APP_ID` | Firebase Web App ID | Production, Preview, Dev |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Firebase Analytics Measurement ID | Production, Preview, Dev |
+
+7. Click **Deploy**. Vercel will build the frontend, deploy the API serverless function, and provide you with a live URL (e.g. `https://re-form.vercel.app`)!
+
+### Option 2: Deploy via Vercel CLI
+```bash
+# Login to Vercel
+npx vercel login
+
+# Deploy to preview
+npx vercel
+
+# Deploy to production
+npx vercel --prod
+```
+
+---
+
 ## 🔥 Firebase Setup Guide
 
 Follow these steps in your [Firebase Console](https://console.firebase.google.com/):
