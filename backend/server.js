@@ -18,7 +18,7 @@ const SYSTEM_INSTRUCTION = "You are Re:form's assistant. Respond only with valid
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS configuration allowing local dev servers and configured frontend origins
+// CORS configuration allowing local dev servers, Vercel deployments, and configured frontend origins
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -33,12 +33,16 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, same-origin)
+    // 1. Allow requests with no origin (like mobile apps, curl, same-origin)
     if (!origin) return callback(null, true);
 
-    // Allow any localhost or 127.0.0.1 on any port (e.g., 5173, 5174, 5175)
+    // 2. Allow any localhost or 127.0.0.1 on any port (local development)
     const isLocalDev = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-    if (isLocalDev || allowedOrigins.includes(origin)) {
+
+    // 3. Allow any Vercel domain (*.vercel.app) or when running inside Vercel
+    const isVercel = /^https?:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(origin);
+
+    if (isLocalDev || isVercel || allowedOrigins.includes(origin) || process.env.VERCEL) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
@@ -55,7 +59,8 @@ const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX = 60;
 
 function rateLimiter(req, res, next) {
-  const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const forwarded = req.headers && req.headers['x-forwarded-for'];
+  const ip = req.ip || (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : null) || req.socket?.remoteAddress || req.connection?.remoteAddress || 'unknown';
   const now = Date.now();
   const entry = ipRequestCounts.get(ip);
 
