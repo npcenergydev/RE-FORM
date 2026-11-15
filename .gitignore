@@ -9,6 +9,7 @@ node_modules/
 # Production build
 frontend/dist/
 dist/
+public/
 
 # OS and Editor files
 .DS_Store
