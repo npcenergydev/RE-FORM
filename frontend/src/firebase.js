@@ -32,34 +32,43 @@ import {
   getDownloadURL
 } from "firebase/storage";
 
-// Your web app's Firebase configuration strictly loaded from environment variables
+// Web app's Firebase configuration with safe project fallbacks for cloud hosting
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDNd8Fs6RSxM93GFHv9FgrKj92UOhkh0qw",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "reform-e169c.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "reform-e169c",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "reform-e169c.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "976500647226",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:976500647226:web:c6d38593e5d6f8b451dc03",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-RCRFBLW5FY"
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+// Initialize Firebase safely
+let appInstance = null;
+let dbInstance = null;
+let authInstance = null;
+let storageInstance = null;
 
-// Initialize Firestore
-export const db = getFirestore(app);
+try {
+  appInstance = initializeApp(firebaseConfig);
+  dbInstance = getFirestore(appInstance);
+  authInstance = getAuth(appInstance);
+  storageInstance = getStorage(appInstance);
+} catch (initErr) {
+  console.warn("[Firebase] Initialization warning, using fallback mode:", initErr);
+  reportFirebaseError("Initialization", initErr);
+}
 
-// Initialize Firebase Authentication
-export const auth = getAuth(app);
-
-// Initialize Firebase Storage
-export const storage = getStorage(app);
+export const app = appInstance;
+export const db = dbInstance;
+export const auth = authInstance;
+export const storage = storageInstance;
 
 // Initialize Analytics (guarded with isSupported for environment safety)
 export let analytics = null;
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && app) {
   isSupported().then((supported) => {
-    if (supported) {
+    if (supported && app) {
       analytics = getAnalytics(app);
     }
   }).catch(() => {
