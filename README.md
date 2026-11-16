@@ -279,6 +279,13 @@ This is a hackathon prototype.
 - Technique mentoring with saved project history
 - Stricter per-user security rules and verified supplier onboarding
 
+## Team
+
+| Name | Role | Contributions |
+| :--- | :--- | :--- |
+| [**Debarpan Chakraborty**](https://github.com/npcenergydev) | Backend Engineer, GenAI Systems and LLM Integration | Express API, Gemini integration (vision and text AI features), prompt design, Firebase data layer, authentication, security rules and deployment |
+| [**Nikita Ghorai**](https://github.com/nikitaghorai4) | Frontend Developer, UI/UX Designer and Researcher | Originated the project idea, user and problem research, interface and experience design, React frontend |
+
 ## License
 
 MIT License. Built for the GeNarrative Clash Hackathon.
